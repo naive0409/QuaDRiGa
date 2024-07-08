@@ -1,7 +1,8 @@
 clear;
+close all;
 
 %% random number generator control
-rng(20240705);
+% rng(20240705);
 % disp(RandStream.getGlobalStream);
 
 %% constants
@@ -9,10 +10,14 @@ position_a = [0; 0; 25]; % alice
 position_b = [1; 0; 1.5]; % bob
 center_frequency = 3.7e9;
 update_rate = 0.01;
+no_sc = 64;
+sc_bw = 20e6;
 
 %% a->b
 %% antenna
 a = qd_arrayant('dipole');
+a.normalize_gain(1,35);
+% a.visualize();
 % a = qd_arrayant( 'parabolic', 3, center_frequency, [] , 3);       % Sat. antenna
 % a.center_frequency = center_frequency;
 % a.copy_element(1,2);                          	% Two identical elements
@@ -50,16 +55,16 @@ l.set_scenario('3GPP_38.901_UMa_NLOS'); % 设置场景为非视距NLOS，包含�
 l.tx_array = a; % 在两端使用相同的天线
 l.rx_array = a;
 
-l.update_rate = update_rate; % 100Hz
+l.update_rate = update_rate;
 
 % l.visualize();title('a->b');
 
-%% generate channel coeff
-c = l.get_channels; % 计算信道系数
-disp("size of c.coeff:")
-disp(size(c.coeff));
-% no_rx no_tx no_path no_snapshot
-% pow = 10*log10(reshape(sum(abs(c.coeff(:,:,:,:)).^2,3),2,[]));
+%% generate channel coeff & frequency response
+c_initial = l.get_channels; % 计算信道系数
+fr_initial = c_initial.fr(no_sc*sc_bw,no_sc); % no_rx no_tx no_subcarrier no_snapshot
+% disp("size of c_initial.coeff:")
+% disp(size(c_initial.coeff));
+% pow = 10*log10(reshape(sum(abs(c_initial.coeff(:,:,:,:)).^2,3),2,[]));
 
 %% b->a
 %% layout init
@@ -80,27 +85,49 @@ l.update_rate = update_rate;
 
 % l.visualize();title('b->a');
 
-%% generate channel coeff
+%% generate channel coeff & frequency response
 c_reversed = l.get_channels; % 计算新的信道系数
+fr_reversed = c_reversed.fr(no_sc*sc_bw,no_sc);
 
 %% plot multiple snapshots for comparison
 snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
 num_snapshots = length(snapshots_to_plot);
 
 figure;
+set(gcf,'Position',[100 100 1000 1000]);
 for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   % 提取初始信道系数和反向信道系数
-  h_initial = c.coeff(:, :, :, snapshot);
+  h_initial = c_initial.coeff(:, :, :, snapshot); % no_rx no_tx no_path no_snapshot
   h_reversed = c_reversed.coeff(:, :, :, snapshot);
   % 创建子图
   subplot(2, 2, i);
   plot(real(h_initial(:)), imag(h_initial(:)), 'o', 'DisplayName', 'Initial(a->b)');
   hold on;
   plot(real(h_reversed(:)), imag(h_reversed(:)), 'x', 'DisplayName', 'Reversed(b->a)');
-  title(['Channel Coeff(Snapshot ', num2str(snapshot), ')']);
+  title(['Ch Coeff(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
   xlabel('Re');
   ylabel('Im');
-  legend('show');
+  legend('show','FontSize',10);
+  hold off;
+end
+
+
+figure;
+set(gcf,'Position',[1100 100 1000 1000]);
+for i = 1:num_snapshots
+  snapshot = snapshots_to_plot(i);
+  % 提取初始信道系数和反向信道系数
+  h_initial = c_initial.coeff(:, :, :, snapshot);
+  h_reversed = c_reversed.coeff(:, :, :, snapshot);
+  % 创建子图
+  subplot(2, 2, i);
+  plot(reshape(fr_initial(:,:,:,i),1,[]),'o','DisplayName', 'Initial(a->b)');
+  hold on;
+  plot(reshape(fr_reversed(:,:,:,i),1,[]),'x','DisplayName', 'Reversed(b->a)');
+  title(['Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
+  xlabel('Re');
+  ylabel('Im');
+  legend('show','FontSize',10);
   hold off;
 end
