@@ -16,7 +16,7 @@ sc_bw = 20e6; % subcarrier bandwidth
 %% a->b
 %% antenna
 a = qd_arrayant('dipole');
-a.normalize_gain(1,35); % antenna gain
+a.normalize_gain(1,45); % antenna gain
 % a.visualize();
 % a = qd_arrayant( 'parabolic', 3, center_frequency, [] , 3);       % Sat. antenna
 % a.center_frequency = center_frequency;
@@ -104,7 +104,7 @@ for i = 1:num_snapshots
   subplot(2, 2, i);
   plot(real(h_initial(:)), imag(h_initial(:)), 'o', 'DisplayName', 'Initial(a->b)');
   hold on;
-  plot(real(h_reversed(:)), imag(h_reversed(:)), 'x', 'DisplayName', 'Reversed(b->a)');
+  plot(real(h_reversed(:)), imag(h_reversed(:)), 'o', 'DisplayName', 'Reversed(b->a)');
   title(['Ch Coeff(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
   xlabel('Re');
   ylabel('Im');
@@ -119,10 +119,10 @@ for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   % 创建子图
   subplot(2, 2, i);
-  plot(reshape(fr_initial(:,:,:,i),1,[]),'o','DisplayName', 'Initial(a->b)');
+  plot(ifft(reshape(fr_initial(:,:,:,i),1,[])),'o','DisplayName', 'Initial(a->b)');
   hold on;
-  plot(reshape(fr_reversed(:,:,:,i),1,[]),'x','DisplayName', 'Reversed(b->a)');
-  title(['Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
+  plot(ifft(reshape(fr_reversed(:,:,:,i),1,[])),'o','DisplayName', 'Reversed(b->a)');
+  title(['ifft Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
   xlabel('Re');
   ylabel('Im');
   legend('show','FontSize',10);
