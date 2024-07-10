@@ -311,6 +311,7 @@ else
                 dist = h_builder.tx_track(1,r).positions_abs - h_builder.rx_track(1,r).positions_abs;
             end
             if any( all( abs(dist) < 1e-14, 1 ) )
+                continue; % 发射机和接收机位置相同，则无需生成信道
                 error('QuaDRiGa:qd_builder:check_dual_mobility:colocated_tx_rx',...
                     ['Tx "',h_builder.tx_track(1,r).name,'" and Rx "',...
                     h_builder.rx_track(1,r).name,'" are in the same location.']);

@@ -16,7 +16,7 @@ sc_bw = 20e6; % subcarrier bandwidth
 %% a->b
 %% antenna
 a = qd_arrayant('dipole');
-a.normalize_gain(1,45); % antenna gain
+a.normalize_gain(1,35); % antenna gain
 % a.visualize();
 % a = qd_arrayant( 'parabolic', 3, center_frequency, [] , 3);       % Sat. antenna
 % a.center_frequency = center_frequency;
@@ -29,11 +29,19 @@ a.normalize_gain(1,45); % antenna gain
 %% alice track
 t_alice = qd_track('linear',0,0); % 不动
 t_alice.initial_position = position_a;
+t_alice.name = 'trackAlice';
 
 %% bob track
 t_bob = qd_track('linear', 0.75, 0); % 0.75m长
 t_bob.movement_profile = [0, 0.5; 0, 0.75]; % 速度1.5m/s
 t_bob.initial_position = position_b;
+t_bob.name = 'trackBob';
+
+t_alice2 = t_bob;
+t_alice2.name = 'trackAlice2';
+
+t_bob2 = t_alice;
+t_bob2.name = 'trackBob2';
 
 %% plot distance & time
 % dist = t_bob.interpolate('time', 0.1);
@@ -47,8 +55,8 @@ l = qd_layout;
 l.simpar.center_frequency = center_frequency;
 l.simpar.show_progress_bars = 0; % 禁用进度条指示器
 
-l.tx_track = t_alice;
-l.rx_track = t_bob;
+l.tx_track = [t_alice, t_alice2];
+l.rx_track = [t_bob, t_bob2];
 
 l.set_scenario('3GPP_38.901_UMa_NLOS'); % 和论文一样
 
@@ -60,33 +68,10 @@ l.update_rate = update_rate;
 % l.visualize();title('a->b'); % 可视化
 
 %% generate channel coeff & frequency response
-c_initial = l.get_channels; % 计算信道系数
+c = l.get_channels(0); % 计算信道系数
+c_initial = c(1,1);
 fr_initial = c_initial.fr(no_sc*sc_bw,no_sc); % frequency response : no_rx no_tx no_subcarrier no_snapshot
-% disp("size of c_initial.coeff:")
-% disp(size(c_initial.coeff));
-% pow = 10*log10(reshape(sum(abs(c_initial.coeff(:,:,:,:)).^2,3),2,[]));
-
-%% b->a
-%% layout init
-l = qd_layout;
-
-l.simpar.center_frequency = center_frequency;
-l.simpar.show_progress_bars = 0; % 禁用进度条指示器
-
-l.tx_track = t_bob;
-l.rx_track = t_alice;
-
-l.set_scenario('3GPP_38.901_UMa_NLOS');
-
-l.tx_array = a; % 在两端使用相同的天线
-l.rx_array = a;
-
-l.update_rate = update_rate;
-
-% l.visualize();title('b->a');
-
-%% generate channel coeff & frequency response
-c_reversed = l.get_channels; % 计算新的信道系数
+c_reversed = c(2,2);
 fr_reversed = c_reversed.fr(no_sc*sc_bw,no_sc);
 
 %% plot multiple snapshots for comparison
@@ -111,7 +96,6 @@ for i = 1:num_snapshots
   legend('show','FontSize',10);
   hold off;
 end
-
 
 figure;
 set(gcf,'Position',[1100 100 1000 1000]);
