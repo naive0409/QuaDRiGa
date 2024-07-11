@@ -2,7 +2,7 @@ clear;
 close all;
 
 %% random number generator control
-rng(20240705);
+% rng(20240705);
 % disp(RandStream.getGlobalStream);
 
 %% constants
@@ -12,19 +12,13 @@ center_frequency = 3.7e9;
 update_rate = 0.01;
 no_sc = 64; % subcarrier number
 sc_bw = 20e6; % subcarrier bandwidth
+track_length = 1.5;
+snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
 
 %% a->b
 %% antenna
 a = qd_arrayant('dipole');
-a.normalize_gain(1,35); % antenna gain
-% a.visualize();
-% a = qd_arrayant( 'parabolic', 3, center_frequency, [] , 3);       % Sat. antenna
-% a.center_frequency = center_frequency;
-% a.copy_element(1,2);                          	% Two identical elements
-% a.rotate_pattern(90,'x',2);                   	% Rotate second element by 90 degrees
-% a.combine_pattern;                           	% Merge polarized patterns
-% a.rotate_pattern(-90,'y');                    	% Point skywards
-% [directivity_dBi, gain_dBi] = a.calc_gain();
+a.normalize_gain(1,50); % antenna gain
 
 %% alice track
 t_alice = qd_track('linear',0,0); % 不动
@@ -32,8 +26,8 @@ t_alice.initial_position = position_a;
 t_alice.name = 'trackAlice';
 
 %% bob track
-t_bob = qd_track('linear', 0.75, 0); % 0.75m长
-t_bob.movement_profile = [0, 0.5; 0, 0.75]; % 速度1.5m/s
+t_bob = qd_track('linear', track_length, 0);
+t_bob.movement_profile = [0, track_length * ( 2 / 3 ); 0, track_length]; % 速度1.5m/s
 t_bob.initial_position = position_b;
 t_bob.name = 'trackBob';
 
@@ -65,7 +59,7 @@ l.rx_array = a;
 
 l.update_rate = update_rate;
 
-% l.visualize();title('a->b'); % 可视化
+% l.visualize(); % 可视化
 
 %% generate channel coeff & frequency response
 c = l.get_channels(0); % 计算信道系数
@@ -75,7 +69,6 @@ c_reversed = c(2,2);
 fr_reversed = c_reversed.fr(no_sc*sc_bw,no_sc);
 
 %% plot multiple snapshots for comparison
-snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
 num_snapshots = length(snapshots_to_plot);
 
 figure;
@@ -103,12 +96,29 @@ for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   % 创建子图
   subplot(2, 2, i);
-  plot(ifft(reshape(fr_initial(:,:,:,i),1,[])),'o','DisplayName', 'Initial(a->b)');
+  fr_initial = reshape(fr_initial(:,:,:,i),1,[]);
+  fr_reversed = reshape(fr_reversed(:,:,:,i),1,[]);
+  plot(ifft(fr_initial),'o','DisplayName', 'Initial(a->b)');
   hold on;
-  plot(ifft(reshape(fr_reversed(:,:,:,i),1,[])),'o','DisplayName', 'Reversed(b->a)');
+  plot(ifft(fr_reversed),'o','DisplayName', 'Reversed(b->a)');
   title(['ifft Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
   xlabel('Re');
   ylabel('Im');
   legend('show','FontSize',10);
+  hold off;
+end
+
+figure;
+set(gcf,'Position',[1100 100 1000 1000]);
+for i = 1:num_snapshots
+  snapshot = snapshots_to_plot(i);
+  % 创建子图
+  subplot(2, 2, i);
+  tmp1 = reshape(fr_initial(:,:,:,i),1,[]);
+  tmp2 = reshape(fr_reversed(:,:,:,i),1,[]);
+  plot(abs(tmp1) ,'-o','DisplayName', 'Initial(a->b)');
+  hold on;
+  plot(abs(tmp2) ,'-o','DisplayName', 'Reversed(b->a)');
+  title(['abs(', num2str(snapshot), ')'],'FontSize',15);
   hold off;
 end
