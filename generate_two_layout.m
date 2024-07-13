@@ -3,18 +3,19 @@ clear;
 close all;
 
 %% random number generator control
-% rng(20240705);
+rng(20240705);
 % disp(RandStream.getGlobalStream);
 
 %% constants
 position_a = [0; 0; 25]; % alice
 position_b = [1; 0; 1.5]; % bob
 center_frequency = 3.7e9;
-update_rate = 0.01;
+update_rate = 0.004;
 no_sc = 64; % subcarrier number
 sc_bw = 20e6; % subcarrier bandwidth
-track_length = 1.5;
-snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
+track_length = 1.5 * 20;
+snapshots_to_plot = [50, 51, 52, 53];
+% snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
 
 %% a->b
 %% antenna
@@ -131,9 +132,9 @@ for i = 1:num_snapshots
   plot(abs(reshape(fr_initial(:,:,:,i),1,[])),'-o','DisplayName', 'Initial(a->b)');
   hold on;
   plot(abs(reshape(fr_reversed(:,:,:,i),1,[])),'-o','DisplayName', 'Reversed(b->a)');
-  title(['Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
-  xlabel('Re');
-  ylabel('Im');
+  title(['abs Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
+%   xlabel('Re');
+%   ylabel('Im');
   legend('show','FontSize',10);
   hold off;
 end
