@@ -3,19 +3,19 @@ clear;
 close all;
 
 %% random number generator control
-rng(20240705);
+% rng(20240705);
 % disp(RandStream.getGlobalStream);
 
 %% constants
 position_a = [0; 0; 25]; % alice
 position_b = [1; 0; 1.5]; % bob
 center_frequency = 3.7e9;
-update_rate = 0.004;
+update_rate = 0.01;
 no_sc = 64; % subcarrier number
-sc_bw = 20e6; % subcarrier bandwidth
-track_length = 1.5 * 20;
-snapshots_to_plot = [50, 51, 52, 53];
-% snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
+sc_bw = 30e3; % subcarrier bandwidth
+track_length = 1.50;
+% snapshots_to_plot = [50, 51, 52, 53];
+snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
 
 %% a->b
 %% antenna
@@ -23,7 +23,8 @@ a = qd_arrayant('dipole');
 a.normalize_gain(1,35); % antenna gain
 
 %% alice track
-t_alice = qd_track('linear',0,0); % 不动
+t_alice = qd_track('linear',1e-5, 0); % 几乎不动
+t_alice.movement_profile = [0, 1; 0, 1e-5];
 t_alice.initial_position = position_a;
 
 %% bob track
@@ -42,6 +43,8 @@ l = qd_layout;
 
 l.simpar.center_frequency = center_frequency;
 l.simpar.show_progress_bars = 0; % 禁用进度条指示器
+% l.simpar.use_random_initial_phase = 0;
+% l.simpar.use_absolute_delays = 1;
 
 l.tx_track = t_alice;
 l.rx_track = t_bob;
@@ -55,8 +58,9 @@ l.update_rate = update_rate;
 
 % l.visualize();title('a->b'); % 可视化
 
-%% generate channel coeff & frequency response
-c_initial = l.get_channels; % 计算信道系数
+%% generate channel coeff & biulder & frequency response
+[c_initial, builder_initial]= l.get_channels(); % 计算信道系数
+c_initial.individual_delays = 0;
 fr_initial = c_initial.fr(no_sc*sc_bw,no_sc); % frequency response : no_rx no_tx no_subcarrier no_snapshot
 % disp("size of c_initial.coeff:")
 % disp(size(c_initial.coeff));
@@ -68,6 +72,8 @@ l = qd_layout;
 
 l.simpar.center_frequency = center_frequency;
 l.simpar.show_progress_bars = 0; % 禁用进度条指示器
+l.simpar.use_random_initial_phase = 0;
+l.simpar.use_absolute_delays = 1;
 
 l.tx_track = t_bob;
 l.rx_track = t_alice;
@@ -79,10 +85,15 @@ l.rx_array = a;
 
 l.update_rate = update_rate;
 
+l.h_qd_builder_init = builder_initial;
+l.track_checksum = checksum( l.rx_track ) + checksum( l.tx_track ) + checksum( l.simpar );
+l.use_channel_interpolation = true;
+
 % l.visualize();title('b->a');
 
 %% generate channel coeff & frequency response
 c_reversed = l.get_channels; % 计算新的信道系数
+c_reversed.individual_delays = 0;
 fr_reversed = c_reversed.fr(no_sc*sc_bw,no_sc);
 
 %% plot multiple snapshots for comparison
