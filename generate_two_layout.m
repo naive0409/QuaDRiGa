@@ -7,15 +7,15 @@ close all;
 % disp(RandStream.getGlobalStream);
 
 %% constants
-position_a = [0; 0; 25]; % alice
+position_a = [0; 0; 5]; % alice
 position_b = [1; 0; 1.5]; % bob
 center_frequency = 3.7e9;
 update_rate = 0.01;
 no_sc = 64; % subcarrier number
 sc_bw = 30e3; % subcarrier bandwidth
-track_length = 1.50;
-% snapshots_to_plot = [50, 51, 52, 53];
-snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
+track_length = 1;
+snapshots_to_plot = [10, 11, 12, 13];
+% snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
 
 %% a->b
 %% antenna
@@ -23,13 +23,13 @@ a = qd_arrayant('dipole');
 a.normalize_gain(1,35); % antenna gain
 
 %% alice track
-t_alice = qd_track('linear',1e-5, 0); % 几乎不动
-t_alice.movement_profile = [0, 1; 0, 1e-5];
+t_alice = qd_track('linear', 1e-3, 0);
+t_alice.set_speed(1e-3);
 t_alice.initial_position = position_a;
 
 %% bob track
 t_bob = qd_track('linear', track_length, 0);
-t_bob.movement_profile = [0, track_length * ( 2 / 3 ); 0, track_length]; % 速度1.5m/s
+t_bob.set_speed(track_length);
 t_bob.initial_position = position_b;
 
 %% plot distance & time
@@ -144,8 +144,6 @@ for i = 1:num_snapshots
   hold on;
   plot(abs(reshape(fr_reversed(:,:,:,i),1,[])),'-o','DisplayName', 'Reversed(b->a)');
   title(['abs Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
-%   xlabel('Re');
-%   ylabel('Im');
   legend('show','FontSize',10);
   hold off;
 end
