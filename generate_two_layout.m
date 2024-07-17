@@ -10,11 +10,11 @@ close all;
 position_a = [0; 0; 5]; % alice
 position_b = [1; 0; 1.5]; % bob
 center_frequency = 3.7e9;
-update_rate = 0.01;
+update_rate = 0.04;
 no_sc = 64; % subcarrier number
 sc_bw = 30e3; % subcarrier bandwidth
 track_length = 1;
-snapshots_to_plot = [10, 11, 12, 13];
+snapshots_to_plot = [7,8,9,2];
 % snapshots_to_plot = [10, 20, 30, 40]; % 需要比较的时间快照
 
 %% a->b
@@ -29,7 +29,7 @@ t_alice.initial_position = position_a;
 
 %% bob track
 t_bob = qd_track('linear', track_length, 0);
-t_bob.set_speed(track_length);
+t_bob.set_speed(1);
 t_bob.initial_position = position_b;
 
 %% plot distance & time
@@ -60,7 +60,7 @@ l.update_rate = update_rate;
 
 %% generate channel coeff & biulder & frequency response
 [c_initial, builder_initial]= l.get_channels(); % 计算信道系数
-c_initial.individual_delays = 0;
+% c_initial.individual_delays = 0;
 fr_initial = c_initial.fr(no_sc*sc_bw,no_sc); % frequency response : no_rx no_tx no_subcarrier no_snapshot
 % disp("size of c_initial.coeff:")
 % disp(size(c_initial.coeff));
@@ -93,7 +93,7 @@ l.use_channel_interpolation = true;
 
 %% generate channel coeff & frequency response
 c_reversed = l.get_channels; % 计算新的信道系数
-c_reversed.individual_delays = 0;
+% c_reversed.individual_delays = 0;
 fr_reversed = c_reversed.fr(no_sc*sc_bw,no_sc);
 
 %% plot multiple snapshots for comparison
