@@ -125,9 +125,9 @@ for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   % 创建子图
   subplot(2, 2, i);
-  plot(reshape(fr_initial(:,:,:,i),1,[]),'o','DisplayName', 'Initial(a->b)');
+  plot(reshape(fr_initial(:,:,:,snapshot),1,[]),'o','DisplayName', 'Initial(a->b)');
   hold on;
-  plot(reshape(fr_reversed(:,:,:,i),1,[]),'o','DisplayName', 'Reversed(b->a)');
+  plot(reshape(fr_reversed(:,:,:,snapshot),1,[]),'o','DisplayName', 'Reversed(b->a)');
   title(['Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
   xlabel('Re');
   ylabel('Im');
@@ -140,9 +140,9 @@ set(gcf,'Position',[1100 100 1000 1000]);
 for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   subplot(2, 2, i);
-  plot(abs(reshape(fr_initial(:,:,:,i),1,[])),'-o','DisplayName', 'Initial(a->b)');
+  plot(abs(reshape(fr_initial(:,:,:,snapshot),1,[])),'-o','DisplayName', 'Initial(a->b)');
   hold on;
-  plot(abs(reshape(fr_reversed(:,:,:,i),1,[])),'-o','DisplayName', 'Reversed(b->a)');
+  plot(abs(reshape(fr_reversed(:,:,:,snapshot),1,[])),'-o','DisplayName', 'Reversed(b->a)');
   title(['abs Ch Frequency Respose(Snapshot ', num2str(snapshot), ')'],'FontSize',15);
   legend('show','FontSize',10);
   hold off;
