@@ -2,6 +2,10 @@
 clear;
 close all;
 
+c_i = [];
+c_r = [];
+% for index=1:5000
+
 %% random number generator control
 % rng(20240705);
 % disp(RandStream.getGlobalStream);
@@ -97,11 +101,17 @@ c_reversed = l.get_channels; % 计算新的信道系数
 % c_reversed.individual_delays = 0;
 fr_reversed = c_reversed.fr(no_sc*sc_bw,no_sc);
 
+c_i = [c_i, c_initial];
+c_r = [c_r,c_reversed];
+
+% end
+% return;
+
 %% plot multiple snapshots for comparison
 num_snapshots = length(snapshots_to_plot);
 
 figure;
-set(gcf,'Position',[100 100 1000 1000]);
+set(gcf,'Position',[100 100 600 600]);
 for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   % 提取初始信道系数和反向信道系数
@@ -121,7 +131,7 @@ end
 
 
 figure;
-set(gcf,'Position',[1100 100 1000 1000]);
+set(gcf,'Position',[300 100 600 600]);
 for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   % 创建子图
@@ -137,7 +147,7 @@ for i = 1:num_snapshots
 end
 
 figure;
-set(gcf,'Position',[1100 100 1000 1000]);
+set(gcf,'Position',[600 100 600 600]);
 for i = 1:num_snapshots
   snapshot = snapshots_to_plot(i);
   subplot(2, 2, i);
