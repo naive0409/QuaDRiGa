@@ -24,6 +24,10 @@ snapshots_to_plot = [1, 2];
 
 for index=1:10000
 
+    if mod(index, 1000) == 0
+        disp(index);
+    end
+
 %% a->b
 %% antenna
 a = qd_arrayant('dipole');
